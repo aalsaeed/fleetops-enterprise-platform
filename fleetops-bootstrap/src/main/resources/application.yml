@@ -2,7 +2,7 @@ spring:
   application:
     name: fleetops-enterprise-platform
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/fleetops}
+    url: ${DB_URL:jdbc:postgresql://127.0.0.1:5433/fleetops}
     username: ${DB_USERNAME:fleetops}
     password: ${DB_PASSWORD:fleetops_dev}
   jpa:
