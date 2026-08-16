@@ -14,7 +14,10 @@ create table trips (
     constraint chk_trips_assignment_state check (
         (status = 'PLANNED' and driver_id is null and primary_vehicle_id is null and attachment_vehicle_id is null)
         or (status in ('ASSIGNED', 'IN_PROGRESS', 'COMPLETED') and driver_id is not null and primary_vehicle_id is not null)
-        or status = 'CANCELLED'
+        or (status = 'CANCELLED' and (
+            (driver_id is null and primary_vehicle_id is null and attachment_vehicle_id is null)
+            or (driver_id is not null and primary_vehicle_id is not null)
+        ))
     )
 );
 
