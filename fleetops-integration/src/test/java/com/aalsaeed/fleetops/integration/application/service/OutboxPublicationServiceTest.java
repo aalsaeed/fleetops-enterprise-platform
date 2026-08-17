@@ -34,9 +34,7 @@ class OutboxPublicationServiceTest {
         IntegrationOutboxMessage message = claimedMessage("MSG-1", 1);
         RecordingStore store = new RecordingStore(List.of(message));
         OutboxPublicationService service = service(store, ignored -> { });
-
         int published = service.publishPending(10);
-
         assertEquals(1, published);
         assertEquals(List.of(message.id()), store.publishedIds);
         assertEquals(List.of(), store.retryIds);
@@ -48,12 +46,8 @@ class OutboxPublicationServiceTest {
     void schedulesRetryWhenPublicationFailsBeforeMaxAttempts() {
         IntegrationOutboxMessage message = claimedMessage("MSG-2", 1);
         RecordingStore store = new RecordingStore(List.of(message));
-        OutboxMessagePublisher failingPublisher = ignored -> {
-            throw new IllegalStateException("broker nack");
-        };
-
+        OutboxMessagePublisher failingPublisher = ignored -> { throw new IllegalStateException("broker nack"); };
         int published = service(store, failingPublisher).publishPending(10);
-
         assertEquals(0, published);
         assertEquals(List.of(message.id()), store.retryIds);
         assertEquals(List.of(), store.failedIds);
@@ -65,12 +59,8 @@ class OutboxPublicationServiceTest {
     void marksMessageFailedWhenMaximumAttemptsAreExhausted() {
         IntegrationOutboxMessage message = claimedMessage("MSG-3", 3);
         RecordingStore store = new RecordingStore(List.of(message));
-        OutboxMessagePublisher failingPublisher = ignored -> {
-            throw new IllegalStateException("confirm timeout");
-        };
-
+        OutboxMessagePublisher failingPublisher = ignored -> { throw new IllegalStateException("confirm timeout"); };
         int published = service(store, failingPublisher).publishPending(10);
-
         assertEquals(0, published);
         assertEquals(List.of(), store.retryIds);
         assertEquals(List.of(message.id()), store.failedIds);
@@ -89,40 +79,23 @@ class OutboxPublicationServiceTest {
     @Test
     void rejectsInvalidBatchSize() {
         OutboxPublicationService service = service(new RecordingStore(List.of()), ignored -> { });
-
         assertThrows(IllegalArgumentException.class, () -> service.publishPending(0));
     }
 
-    private static OutboxPublicationService service(
-            RecordingStore store,
-            OutboxMessagePublisher publisher) {
+    private static OutboxPublicationService service(RecordingStore store, OutboxMessagePublisher publisher) {
         return new OutboxPublicationService(store, publisher, RETRY_POLICY, CLOCK);
     }
 
     private static IntegrationOutboxMessage claimedMessage(String sourceMessageId, int attempts) {
         ErpShipmentMessage erpMessage = ErpShipmentMessage.create(
-                "ERP-DEMO",
-                sourceMessageId,
-                "SHIP-" + sourceMessageId,
-                ErpShipmentOperation.UPSERT,
-                NOW,
-                "CORR-" + sourceMessageId);
+                "ERP-DEMO", sourceMessageId, "SHIP-" + sourceMessageId,
+                ErpShipmentOperation.UPSERT, NOW, "CORR-" + sourceMessageId);
         IntegrationOutboxMessage pending = IntegrationOutboxMessage.pending(
-                erpMessage,
-                "{\"shipmentReference\":\"SHIP\"}",
-                NOW);
+                erpMessage, "{\"shipmentReference\":\"SHIP\"}", NOW);
         return IntegrationOutboxMessage.restore(
-                pending.id(),
-                pending.idempotencyKey(),
-                pending.eventType(),
-                pending.aggregateType(),
-                pending.aggregateId(),
-                pending.payload(),
-                OutboxStatus.PUBLISHING,
-                attempts,
-                pending.createdAt(),
-                null,
-                null);
+                pending.id(), pending.idempotencyKey(), pending.eventType(), pending.aggregateType(),
+                pending.aggregateId(), pending.payload(), OutboxStatus.PUBLISHING, attempts,
+                pending.createdAt(), null, null);
     }
 
     private static final class RecordingStore implements OutboxPublicationStore {
@@ -134,37 +107,14 @@ class OutboxPublicationServiceTest {
         private Instant nextAttemptAt;
         private Instant lastStaleBefore;
 
-        private RecordingStore(List<IntegrationOutboxMessage> claimed) {
-            this.claimed = claimed;
+        private RecordingStore(List<IntegrationOutboxMessage> claimed) { this.claimed = claimed; }
+        @Override public List<IntegrationOutboxMessage> claimPending(int limit, Instant claimedAt) { return claimed; }
+        @Override public void markPublished(IntegrationMessageId id, Instant publishedAt) { publishedIds.add(id); }
+        @Override public void scheduleRetry(IntegrationMessageId id, String error, Instant nextAttemptAt) {
+            retryIds.add(id); lastError = error; this.nextAttemptAt = nextAttemptAt;
         }
-
-        @Override
-        public List<IntegrationOutboxMessage> claimPending(int limit, Instant claimedAt) {
-            return claimed;
-        }
-
-        @Override
-        public void markPublished(IntegrationMessageId id, Instant publishedAt) {
-            publishedIds.add(id);
-        }
-
-        @Override
-        public void scheduleRetry(IntegrationMessageId id, String error, Instant nextAttemptAt) {
-            retryIds.add(id);
-            lastError = error;
-            this.nextAttemptAt = nextAttemptAt;
-        }
-
-        @Override
-        public void markFailed(IntegrationMessageId id, String error) {
-            failedIds.add(id);
-            lastError = error;
-        }
-
-        @Override
-        public int recoverStalePublishing(Instant staleBefore, Instant retryAt) {
-            lastStaleBefore = staleBefore;
-            return 0;
-        }
+        @Override public void markFailed(IntegrationMessageId id, String error) { failedIds.add(id); lastError = error; }
+        @Override public int recoverStalePublishing(Instant staleBefore, Instant retryAt) { lastStaleBefore = staleBefore; return 0; }
+        @Override public boolean requeueFailed(IntegrationMessageId id, Instant retryAt) { return true; }
     }
 }
