@@ -23,7 +23,8 @@ public class JdbcOutboxPublicationStore implements OutboxPublicationStore {
                 select id
                   from integration_outbox
                  where status = 'PENDING'
-                 order by created_at
+                   and (next_attempt_at is null or next_attempt_at <= ?)
+                 order by coalesce(next_attempt_at, created_at), created_at
                  limit ?
                  for update skip locked
             )
@@ -31,6 +32,7 @@ public class JdbcOutboxPublicationStore implements OutboxPublicationStore {
                set status = 'PUBLISHING',
                    attempts = o.attempts + 1,
                    claimed_at = ?,
+                   next_attempt_at = null,
                    last_error = null
               from candidates c
              where o.id = c.id
@@ -53,6 +55,7 @@ public class JdbcOutboxPublicationStore implements OutboxPublicationStore {
         }
         Objects.requireNonNull(claimedAt, "Claim timestamp cannot be null");
 
+        Timestamp now = Timestamp.from(claimedAt);
         return jdbcTemplate.query(
                 CLAIM_SQL,
                 (rs, rowNum) -> IntegrationOutboxMessage.restore(
@@ -67,8 +70,9 @@ public class JdbcOutboxPublicationStore implements OutboxPublicationStore {
                         rs.getTimestamp("created_at").toInstant(),
                         toInstant(rs.getTimestamp("published_at")),
                         rs.getString("last_error")),
+                now,
                 limit,
-                Timestamp.from(claimedAt));
+                now);
     }
 
     @Override
@@ -76,38 +80,77 @@ public class JdbcOutboxPublicationStore implements OutboxPublicationStore {
     public void markPublished(IntegrationMessageId id, Instant publishedAt) {
         Objects.requireNonNull(id, "Message ID cannot be null");
         Objects.requireNonNull(publishedAt, "Published timestamp cannot be null");
-
         int updated = jdbcTemplate.update(
                 """
                 update integration_outbox
-                   set status = 'PUBLISHED',
-                       published_at = ?,
-                       claimed_at = null,
-                       last_error = null
+                   set status = 'PUBLISHED', published_at = ?, claimed_at = null,
+                       next_attempt_at = null, last_error = null
                  where id = ? and status = 'PUBLISHING'
                 """,
-                Timestamp.from(publishedAt),
-                id.value());
+                Timestamp.from(publishedAt), id.value());
         requireSingleUpdate(id, updated, "published");
+    }
+
+    @Override
+    @Transactional
+    public void scheduleRetry(IntegrationMessageId id, String error, Instant nextAttemptAt) {
+        Objects.requireNonNull(id, "Message ID cannot be null");
+        Objects.requireNonNull(nextAttemptAt, "Next-attempt timestamp cannot be null");
+        int updated = jdbcTemplate.update(
+                """
+                update integration_outbox
+                   set status = 'PENDING', claimed_at = null, next_attempt_at = ?, last_error = ?
+                 where id = ? and status = 'PUBLISHING'
+                """,
+                Timestamp.from(nextAttemptAt), normalizeError(error), id.value());
+        requireSingleUpdate(id, updated, "scheduled for retry");
     }
 
     @Override
     @Transactional
     public void markFailed(IntegrationMessageId id, String error) {
         Objects.requireNonNull(id, "Message ID cannot be null");
-        String normalizedError = normalizeError(error);
-
         int updated = jdbcTemplate.update(
                 """
                 update integration_outbox
-                   set status = 'FAILED',
-                       claimed_at = null,
-                       last_error = ?
+                   set status = 'FAILED', claimed_at = null, next_attempt_at = null, last_error = ?
                  where id = ? and status = 'PUBLISHING'
                 """,
-                normalizedError,
-                id.value());
+                normalizeError(error), id.value());
         requireSingleUpdate(id, updated, "failed");
+    }
+
+    @Override
+    @Transactional
+    public int recoverStalePublishing(Instant staleBefore, Instant retryAt) {
+        Objects.requireNonNull(staleBefore, "Stale-before timestamp cannot be null");
+        Objects.requireNonNull(retryAt, "Retry timestamp cannot be null");
+        return jdbcTemplate.update(
+                """
+                update integration_outbox
+                   set status = 'PENDING', claimed_at = null, next_attempt_at = ?,
+                       last_error = 'Recovered stale PUBLISHING claim after worker interruption'
+                 where status = 'PUBLISHING'
+                   and claimed_at is not null
+                   and claimed_at < ?
+                """,
+                Timestamp.from(retryAt), Timestamp.from(staleBefore));
+    }
+
+    @Override
+    @Transactional
+    public boolean requeueFailed(IntegrationMessageId id, Instant retryAt) {
+        Objects.requireNonNull(id, "Message ID cannot be null");
+        Objects.requireNonNull(retryAt, "Retry timestamp cannot be null");
+        int updated = jdbcTemplate.update(
+                """
+                update integration_outbox
+                   set status = 'PENDING', attempts = 0, claimed_at = null,
+                       next_attempt_at = ?, published_at = null
+                 where id = ? and status = 'FAILED'
+                """,
+                Timestamp.from(retryAt), id.value());
+        return updated == 1;
     }
 
     private static Instant toInstant(Timestamp timestamp) {
@@ -121,8 +164,7 @@ public class JdbcOutboxPublicationStore implements OutboxPublicationStore {
 
     private static void requireSingleUpdate(IntegrationMessageId id, int updated, String targetState) {
         if (updated != 1) {
-            throw new IllegalStateException(
-                    "Could not mark outbox message " + id.value() + " as " + targetState);
+            throw new IllegalStateException("Could not mark outbox message " + id.value() + " as " + targetState);
         }
     }
 }
