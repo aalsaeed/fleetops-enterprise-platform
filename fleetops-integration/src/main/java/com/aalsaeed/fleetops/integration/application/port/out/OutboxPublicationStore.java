@@ -12,5 +12,9 @@ public interface OutboxPublicationStore {
 
     void markPublished(IntegrationMessageId id, Instant publishedAt);
 
+    void scheduleRetry(IntegrationMessageId id, String error, Instant nextAttemptAt);
+
     void markFailed(IntegrationMessageId id, String error);
+
+    int recoverStalePublishing(Instant staleBefore, Instant retryAt);
 }
