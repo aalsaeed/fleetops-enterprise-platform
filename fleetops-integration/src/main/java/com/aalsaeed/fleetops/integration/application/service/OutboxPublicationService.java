@@ -6,6 +6,7 @@ import com.aalsaeed.fleetops.integration.application.port.out.OutboxPublicationS
 import com.aalsaeed.fleetops.integration.domain.outbox.IntegrationOutboxMessage;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
@@ -13,14 +14,17 @@ public final class OutboxPublicationService implements PublishPendingOutboxUseCa
 
     private final OutboxPublicationStore publicationStore;
     private final OutboxMessagePublisher messagePublisher;
+    private final OutboxRetryPolicy retryPolicy;
     private final Clock clock;
 
     public OutboxPublicationService(
             OutboxPublicationStore publicationStore,
             OutboxMessagePublisher messagePublisher,
+            OutboxRetryPolicy retryPolicy,
             Clock clock) {
         this.publicationStore = Objects.requireNonNull(publicationStore, "Publication store cannot be null");
         this.messagePublisher = Objects.requireNonNull(messagePublisher, "Message publisher cannot be null");
+        this.retryPolicy = Objects.requireNonNull(retryPolicy, "Retry policy cannot be null");
         this.clock = Objects.requireNonNull(clock, "Clock cannot be null");
     }
 
@@ -30,7 +34,12 @@ public final class OutboxPublicationService implements PublishPendingOutboxUseCa
             throw new IllegalArgumentException("Batch size must be at least 1");
         }
 
-        List<IntegrationOutboxMessage> claimed = publicationStore.claimPending(batchSize, clock.instant());
+        Instant now = clock.instant();
+        publicationStore.recoverStalePublishing(
+                now.minus(retryPolicy.stalePublishingTimeout()),
+                now);
+
+        List<IntegrationOutboxMessage> claimed = publicationStore.claimPending(batchSize, now);
         int published = 0;
 
         for (IntegrationOutboxMessage message : claimed) {
@@ -39,11 +48,22 @@ public final class OutboxPublicationService implements PublishPendingOutboxUseCa
                 publicationStore.markPublished(message.id(), clock.instant());
                 published++;
             } catch (RuntimeException ex) {
-                publicationStore.markFailed(message.id(), describe(ex));
+                handleFailure(message, ex);
             }
         }
 
         return published;
+    }
+
+    private void handleFailure(IntegrationOutboxMessage message, RuntimeException exception) {
+        String error = describe(exception);
+        if (message.attempts() >= retryPolicy.maxAttempts()) {
+            publicationStore.markFailed(message.id(), error);
+            return;
+        }
+
+        Instant nextAttemptAt = clock.instant().plus(retryPolicy.delayAfterAttempt(message.attempts()));
+        publicationStore.scheduleRetry(message.id(), error, nextAttemptAt);
     }
 
     private static String describe(RuntimeException ex) {
