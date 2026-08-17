@@ -5,6 +5,7 @@ import com.aalsaeed.fleetops.integration.application.port.in.AcceptErpShipmentDe
 import com.aalsaeed.fleetops.integration.application.port.in.AcceptErpShipmentDeliveryUseCase;
 import com.aalsaeed.fleetops.integration.application.port.out.ErpShipmentPayloadDeserializer;
 import com.aalsaeed.fleetops.integration.domain.ErpShipmentMessage;
+import com.aalsaeed.fleetops.integration.infrastructure.config.RabbitMqConsumerRetryConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
@@ -43,7 +44,9 @@ public final class RabbitMqErpShipmentConsumer {
         this.acceptDeliveryUseCase = Objects.requireNonNull(acceptDeliveryUseCase, "Inbox use case cannot be null");
     }
 
-    @RabbitListener(queues = RabbitMqIntegrationTopology.ERP_SHIPMENT_QUEUE)
+    @RabbitListener(
+            queues = RabbitMqIntegrationTopology.ERP_SHIPMENT_QUEUE,
+            containerFactory = RabbitMqConsumerRetryConfiguration.LISTENER_CONTAINER_FACTORY)
     public void consume(Message amqpMessage) {
         Objects.requireNonNull(amqpMessage, "RabbitMQ message cannot be null");
 
