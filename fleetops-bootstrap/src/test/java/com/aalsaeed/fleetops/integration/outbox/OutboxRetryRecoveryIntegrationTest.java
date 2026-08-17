@@ -15,6 +15,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 
@@ -47,16 +48,18 @@ class OutboxRetryRecoveryIntegrationTest {
         stageErpShipmentUseCase.stage(message);
         jdbcTemplate.update(
                 "update integration_outbox set status = 'PUBLISHING', attempts = 1, claimed_at = ? where id = ?",
-                NOW.minusSeconds(120), message.id().value());
+                Timestamp.from(NOW.minusSeconds(120)), message.id().value());
 
         int recovered = publicationStore.recoverStalePublishing(NOW.minusSeconds(60), NOW);
         assertEquals(1, recovered);
         assertEquals("PENDING", jdbcTemplate.queryForObject(
                 "select status from integration_outbox where id = ?", String.class, message.id().value()));
         assertNull(jdbcTemplate.queryForObject(
-                "select claimed_at from integration_outbox where id = ?", Instant.class, message.id().value()));
-        assertEquals(NOW, jdbcTemplate.queryForObject(
-                "select next_attempt_at from integration_outbox where id = ?", Instant.class, message.id().value()));
+                "select claimed_at from integration_outbox where id = ?", Timestamp.class, message.id().value()));
+        Timestamp nextAttemptAt = jdbcTemplate.queryForObject(
+                "select next_attempt_at from integration_outbox where id = ?", Timestamp.class, message.id().value());
+        assertNotNull(nextAttemptAt);
+        assertEquals(NOW, nextAttemptAt.toInstant());
 
         List<IntegrationOutboxMessage> firstClaim = publicationStore.claimPending(10, NOW);
         assertEquals(1, firstClaim.size());
@@ -84,7 +87,7 @@ class OutboxRetryRecoveryIntegrationTest {
         assertEquals(0, jdbcTemplate.queryForObject(
                 "select attempts from integration_outbox where id = ?", Integer.class, message.id().value()));
         assertNotNull(jdbcTemplate.queryForObject(
-                "select next_attempt_at from integration_outbox where id = ?", Instant.class, message.id().value()));
+                "select next_attempt_at from integration_outbox where id = ?", Timestamp.class, message.id().value()));
     }
 
     private static ErpShipmentMessage shipment(String sourceMessageId, String shipmentReference) {
