@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest
+@SpringBootTest(properties = "fleetops.integration.outbox.publisher.enabled=false")
 @Testcontainers
 class ErpShipmentOutboxIntegrationTest {
 
