@@ -1,8 +1,5 @@
 package com.aalsaeed.fleetops.integration.infrastructure.config;
 
-import com.aalsaeed.fleetops.integration.application.port.in.ProcessPendingInboxUseCase;
-import com.aalsaeed.fleetops.integration.application.port.in.RecoverStaleInboxUseCase;
-import com.aalsaeed.fleetops.integration.application.port.in.RequeueFailedInboxUseCase;
 import com.aalsaeed.fleetops.integration.application.port.out.ErpShipmentPayloadDeserializer;
 import com.aalsaeed.fleetops.integration.application.port.out.ErpShipmentTripHandoffPort;
 import com.aalsaeed.fleetops.integration.application.port.out.InboxProcessingStore;
@@ -25,20 +22,5 @@ public class InboxProcessingConfiguration {
                 payloadDeserializer,
                 tripHandoffPort,
                 Clock.systemUTC());
-    }
-
-    @Bean
-    ProcessPendingInboxUseCase processPendingInboxUseCase(InboxProcessingService service) {
-        return service;
-    }
-
-    @Bean
-    RecoverStaleInboxUseCase recoverStaleInboxUseCase(InboxProcessingService service) {
-        return service;
-    }
-
-    @Bean
-    RequeueFailedInboxUseCase requeueFailedInboxUseCase(InboxProcessingService service) {
-        return service;
     }
 }
