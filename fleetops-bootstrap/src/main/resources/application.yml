@@ -29,6 +29,18 @@ fleetops:
         batch-size: ${OUTBOX_PUBLISHER_BATCH_SIZE:25}
         fixed-delay-ms: ${OUTBOX_PUBLISHER_FIXED_DELAY_MS:1000}
         confirm-timeout-ms: ${OUTBOX_PUBLISHER_CONFIRM_TIMEOUT_MS:5000}
+        max-attempts: ${OUTBOX_PUBLISHER_MAX_ATTEMPTS:5}
+        retry-initial-delay-ms: ${OUTBOX_PUBLISHER_RETRY_INITIAL_DELAY_MS:1000}
+        retry-max-delay-ms: ${OUTBOX_PUBLISHER_RETRY_MAX_DELAY_MS:60000}
+        stale-publishing-timeout-ms: ${OUTBOX_STALE_PUBLISHING_TIMEOUT_MS:60000}
+    inbox:
+      consumer:
+        enabled: ${INBOX_CONSUMER_ENABLED:true}
+        retry:
+          max-attempts: ${INBOX_CONSUMER_RETRY_MAX_ATTEMPTS:3}
+          initial-interval-ms: ${INBOX_CONSUMER_RETRY_INITIAL_INTERVAL_MS:250}
+          multiplier: ${INBOX_CONSUMER_RETRY_MULTIPLIER:2.0}
+          max-interval-ms: ${INBOX_CONSUMER_RETRY_MAX_INTERVAL_MS:2000}
 
 management:
   endpoints:
