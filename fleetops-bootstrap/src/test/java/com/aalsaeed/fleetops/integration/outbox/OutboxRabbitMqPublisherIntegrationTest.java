@@ -18,6 +18,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.rabbitmq.RabbitMQContainer;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -77,11 +78,11 @@ class OutboxRabbitMqPublisherIntegrationTest {
                 message.id().value()));
         assertNotNull(jdbcTemplate.queryForObject(
                 "select published_at from integration_outbox where id = ?",
-                Instant.class,
+                Timestamp.class,
                 message.id().value()));
         assertNull(jdbcTemplate.queryForObject(
                 "select claimed_at from integration_outbox where id = ?",
-                Instant.class,
+                Timestamp.class,
                 message.id().value()));
 
         Message delivered = rabbitTemplate.receive(RabbitMqIntegrationTopology.ERP_SHIPMENT_QUEUE, 5000);
