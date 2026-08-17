@@ -5,7 +5,6 @@ import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
-import org.springframework.amqp.core.ExchangeBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -18,9 +17,7 @@ public class RabbitMqIntegrationTopology {
 
     @Bean
     TopicExchange integrationEventsExchange() {
-        return ExchangeBuilder.topicExchange(INTEGRATION_EXCHANGE)
-                .durable(true)
-                .build();
+        return new TopicExchange(INTEGRATION_EXCHANGE, true, false);
     }
 
     @Bean
