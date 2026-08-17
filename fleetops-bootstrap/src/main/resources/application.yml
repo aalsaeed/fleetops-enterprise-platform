@@ -11,6 +11,24 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
+  rabbitmq:
+    host: ${RABBITMQ_HOST:127.0.0.1}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:fleetops}
+    password: ${RABBITMQ_PASSWORD:fleetops_dev}
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
+
+fleetops:
+  integration:
+    outbox:
+      publisher:
+        enabled: ${OUTBOX_PUBLISHER_ENABLED:true}
+        batch-size: ${OUTBOX_PUBLISHER_BATCH_SIZE:25}
+        fixed-delay-ms: ${OUTBOX_PUBLISHER_FIXED_DELAY_MS:1000}
+        confirm-timeout-ms: ${OUTBOX_PUBLISHER_CONFIRM_TIMEOUT_MS:5000}
 
 management:
   endpoints:
