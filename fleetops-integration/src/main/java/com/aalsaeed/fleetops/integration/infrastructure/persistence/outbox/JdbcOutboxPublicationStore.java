@@ -24,8 +24,8 @@ public class JdbcOutboxPublicationStore implements OutboxPublicationStore {
                   from integration_outbox
                  where status = 'PENDING'
                  order by created_at
-                 for update skip locked
                  limit ?
+                 for update skip locked
             )
             update integration_outbox o
                set status = 'PUBLISHING',
