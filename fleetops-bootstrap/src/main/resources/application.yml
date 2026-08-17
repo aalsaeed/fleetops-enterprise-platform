@@ -23,6 +23,8 @@ spring:
 
 fleetops:
   integration:
+    operations:
+      failure-limit: ${INTEGRATION_OPERATIONS_FAILURE_LIMIT:20}
     outbox:
       publisher:
         enabled: ${OUTBOX_PUBLISHER_ENABLED:true}
