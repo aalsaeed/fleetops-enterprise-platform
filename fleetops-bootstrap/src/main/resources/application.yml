@@ -41,6 +41,11 @@ fleetops:
           initial-interval-ms: ${INBOX_CONSUMER_RETRY_INITIAL_INTERVAL_MS:250}
           multiplier: ${INBOX_CONSUMER_RETRY_MULTIPLIER:2.0}
           max-interval-ms: ${INBOX_CONSUMER_RETRY_MAX_INTERVAL_MS:2000}
+      processor:
+        enabled: ${INBOX_PROCESSOR_ENABLED:true}
+        batch-size: ${INBOX_PROCESSOR_BATCH_SIZE:25}
+        fixed-delay-ms: ${INBOX_PROCESSOR_FIXED_DELAY_MS:1000}
+        stale-processing-timeout-ms: ${INBOX_PROCESSOR_STALE_TIMEOUT_MS:60000}
 
 management:
   endpoints:
