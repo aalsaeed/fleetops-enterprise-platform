@@ -17,4 +17,6 @@ public interface OutboxPublicationStore {
     void markFailed(IntegrationMessageId id, String error);
 
     int recoverStalePublishing(Instant staleBefore, Instant retryAt);
+
+    boolean requeueFailed(IntegrationMessageId id, Instant retryAt);
 }
