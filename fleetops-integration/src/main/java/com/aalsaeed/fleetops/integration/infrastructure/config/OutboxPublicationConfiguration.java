@@ -1,9 +1,11 @@
 package com.aalsaeed.fleetops.integration.infrastructure.config;
 
 import com.aalsaeed.fleetops.integration.application.port.in.PublishPendingOutboxUseCase;
+import com.aalsaeed.fleetops.integration.application.port.in.RequeueFailedOutboxUseCase;
 import com.aalsaeed.fleetops.integration.application.port.out.OutboxMessagePublisher;
 import com.aalsaeed.fleetops.integration.application.port.out.OutboxPublicationStore;
 import com.aalsaeed.fleetops.integration.application.service.OutboxPublicationService;
+import com.aalsaeed.fleetops.integration.application.service.OutboxRecoveryService;
 import com.aalsaeed.fleetops.integration.application.service.OutboxRetryPolicy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -31,6 +33,11 @@ public class OutboxPublicationConfiguration {
                 positiveDuration(retryMaxDelayMs, "Outbox retry maximum delay"),
                 positiveDuration(stalePublishingTimeoutMs, "Outbox stale publishing timeout"));
         return new OutboxPublicationService(publicationStore, messagePublisher, retryPolicy, Clock.systemUTC());
+    }
+
+    @Bean
+    RequeueFailedOutboxUseCase requeueFailedOutboxUseCase(OutboxPublicationStore publicationStore) {
+        return new OutboxRecoveryService(publicationStore, Clock.systemUTC());
     }
 
     private static Duration positiveDuration(long millis, String name) {
