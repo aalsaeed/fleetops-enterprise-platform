@@ -21,4 +21,10 @@ FleetOps HTTP APIs are protected as an OAuth2 Resource Server using JWT bearer t
 
 JWT roles are normalized through a dedicated converter. Unrecognized identity-provider roles are ignored rather than being promoted automatically into application authorities.
 
-Local Keycloak provisioning is intentionally handled in a separate increment so the authorization model remains independent from a specific identity provider.
+## Local Identity Provider
+
+The development stack includes Keycloak with a committed, non-secret demonstration realm. It provisions service-account clients for the three FleetOps authorities and exercises the same JWT validation path used by the application.
+
+See [Local Keycloak Runbook](keycloak-local.md) for startup, token acquisition, and reset instructions.
+
+The local Keycloak configuration is for development and portfolio demonstrations only. Production identity-provider endpoints and credentials remain environment-specific.
