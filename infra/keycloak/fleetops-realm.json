@@ -1,0 +1,93 @@
+{
+  "realm": "fleetops",
+  "enabled": true,
+  "displayName": "FleetOps Local Development",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": false,
+  "rememberMe": false,
+  "loginWithEmailAllowed": false,
+  "duplicateEmailsAllowed": false,
+  "roles": {
+    "realm": [
+      {
+        "name": "FLEETOPS_USER",
+        "description": "Read-only FleetOps API access"
+      },
+      {
+        "name": "FLEETOPS_OPERATOR",
+        "description": "FleetOps operational read/write access"
+      },
+      {
+        "name": "FLEETOPS_ADMIN",
+        "description": "FleetOps administrative and recovery access"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "fleetops-user-client",
+      "name": "FleetOps local user client",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${FLEETOPS_USER_CLIENT_SECRET}",
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    },
+    {
+      "clientId": "fleetops-operator-client",
+      "name": "FleetOps local operator client",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${FLEETOPS_OPERATOR_CLIENT_SECRET}",
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    },
+    {
+      "clientId": "fleetops-admin-client",
+      "name": "FleetOps local admin client",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${FLEETOPS_ADMIN_CLIENT_SECRET}",
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-fleetops-user-client",
+      "enabled": true,
+      "serviceAccountClientId": "fleetops-user-client",
+      "realmRoles": [
+        "FLEETOPS_USER"
+      ]
+    },
+    {
+      "username": "service-account-fleetops-operator-client",
+      "enabled": true,
+      "serviceAccountClientId": "fleetops-operator-client",
+      "realmRoles": [
+        "FLEETOPS_OPERATOR"
+      ]
+    },
+    {
+      "username": "service-account-fleetops-admin-client",
+      "enabled": true,
+      "serviceAccountClientId": "fleetops-admin-client",
+      "realmRoles": [
+        "FLEETOPS_ADMIN"
+      ]
+    }
+  ]
+}
