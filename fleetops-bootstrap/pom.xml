@@ -33,6 +33,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.aalsaeed.fleetops</groupId>
+            <artifactId>fleetops-audit</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>

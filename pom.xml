@@ -25,6 +25,7 @@
         <module>fleetops-vehicle</module>
         <module>fleetops-trip</module>
         <module>fleetops-integration</module>
+        <module>fleetops-audit</module>
         <module>fleetops-bootstrap</module>
     </modules>
 
