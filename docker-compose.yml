@@ -42,6 +42,20 @@ services:
       timeout: 3s
       retries: 10
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.0
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_BOOTSTRAP_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD:-fleetops_local_admin}
+      FLEETOPS_USER_CLIENT_SECRET: ${FLEETOPS_USER_CLIENT_SECRET:-fleetops-local-user-secret}
+      FLEETOPS_OPERATOR_CLIENT_SECRET: ${FLEETOPS_OPERATOR_CLIENT_SECRET:-fleetops-local-operator-secret}
+      FLEETOPS_ADMIN_CLIENT_SECRET: ${FLEETOPS_ADMIN_CLIENT_SECRET:-fleetops-local-admin-secret}
+    ports:
+      - "${KEYCLOAK_PORT:-8180}:8080"
+    volumes:
+      - ./infra/keycloak/fleetops-realm.json:/opt/keycloak/data/import/fleetops-realm.json:ro
+
 volumes:
   fleetops_postgres_data:
   fleetops_redis_data:
