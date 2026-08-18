@@ -20,6 +20,12 @@ spring:
     publisher-returns: true
     template:
       mandatory: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${SECURITY_JWT_ISSUER_URI:http://127.0.0.1:8180/realms/fleetops}
+          jwk-set-uri: ${SECURITY_JWK_SET_URI:http://127.0.0.1:8180/realms/fleetops/protocol/openid-connect/certs}
 
 fleetops:
   integration:
