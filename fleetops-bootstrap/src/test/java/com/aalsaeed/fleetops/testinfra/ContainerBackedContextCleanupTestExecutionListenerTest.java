@@ -3,10 +3,12 @@ package com.aalsaeed.fleetops.testinfra;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestContext;
+import org.springframework.test.context.TestContextManager;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -21,7 +23,7 @@ class ContainerBackedContextCleanupTestExecutionListenerTest {
     void marksLoadedContextDirtyForStaticClassManagedContainer() {
         TestContext testContext = mock(TestContext.class);
         when(testContext.hasApplicationContext()).thenReturn(true);
-        when(testContext.getTestClass()).thenReturn(ContainerBackedTest.class);
+        doReturn(ContainerBackedTest.class).when(testContext).getTestClass();
 
         listener.afterTestClass(testContext);
 
@@ -32,7 +34,7 @@ class ContainerBackedContextCleanupTestExecutionListenerTest {
     void leavesContextCachedWhenTestDoesNotOwnStaticContainer() {
         TestContext testContext = mock(TestContext.class);
         when(testContext.hasApplicationContext()).thenReturn(true);
-        when(testContext.getTestClass()).thenReturn(PlainSpringTest.class);
+        doReturn(PlainSpringTest.class).when(testContext).getTestClass();
 
         listener.afterTestClass(testContext);
 
@@ -44,6 +46,14 @@ class ContainerBackedContextCleanupTestExecutionListenerTest {
         assertThat(ContainerBackedContextCleanupTestExecutionListener
                 .usesClassManagedContainers(InheritedContainerTest.class))
                 .isTrue();
+    }
+
+    @Test
+    void isAutomaticallyDiscoveredBySpringTestContext() {
+        TestContextManager manager = new TestContextManager(PlainSpringTest.class);
+
+        assertThat(manager.getTestExecutionListeners())
+                .anyMatch(ContainerBackedContextCleanupTestExecutionListener.class::isInstance);
     }
 
     private static class ContainerBackedTest {
