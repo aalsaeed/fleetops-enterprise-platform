@@ -56,6 +56,13 @@ services:
     volumes:
       - ./infra/keycloak/fleetops-realm.json:/opt/keycloak/data/import/fleetops-realm.json:ro
 
+  jaeger:
+    image: cr.jaegertracing.io/jaegertracing/jaeger:2.20.0
+    ports:
+      - "${JAEGER_UI_PORT:-16686}:16686"
+      - "${OTEL_GRPC_PORT:-4317}:4317"
+      - "${OTEL_HTTP_PORT:-4318}:4318"
+
 volumes:
   fleetops_postgres_data:
   fleetops_redis_data:
