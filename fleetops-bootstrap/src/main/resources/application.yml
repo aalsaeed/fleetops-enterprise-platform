@@ -20,6 +20,10 @@ spring:
     publisher-returns: true
     template:
       mandatory: true
+      observation-enabled: true
+    listener:
+      simple:
+        observation-enabled: true
   security:
     oauth2:
       resourceserver:
@@ -67,6 +71,24 @@ management:
     health:
       probes:
         enabled: true
+  otlp:
+    metrics:
+      export:
+        enabled: false
+  tracing:
+    sampling:
+      probability: ${OTEL_TRACES_SAMPLING_PROBABILITY:0.1}
+    export:
+      otlp:
+        enabled: ${OTEL_TRACES_EXPORTER_ENABLED:false}
+  opentelemetry:
+    resource-attributes:
+      service.namespace: fleetops
+    tracing:
+      sampler: parent-based-trace-id-ratio
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://127.0.0.1:4318/v1/traces}
 
 server:
   port: ${SERVER_PORT:8080}
