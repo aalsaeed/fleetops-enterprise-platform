@@ -50,6 +50,8 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/actuator/prometheus")
+                        .hasAnyAuthority(FleetOpsAuthorities.OPERATOR, FleetOpsAuthorities.ADMIN)
                         .requestMatchers(HttpMethod.GET, "/api/v1/audit/**")
                         .hasAuthority(FleetOpsAuthorities.ADMIN)
                         .requestMatchers(HttpMethod.POST, "/api/v1/integration/operations/**")
