@@ -5,9 +5,9 @@ import io.micrometer.tracing.Tracer;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.core.AnonymousQueue;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -79,9 +79,7 @@ class OpenTelemetryTracingIntegrationTest {
 
     @Test
     void propagatesTraceContextThroughRabbitTemplateObservation() {
-        Queue queue = QueueBuilder.nonDurable("fleetops.tracing.propagation.test")
-                .autoDelete()
-                .build();
+        Queue queue = new AnonymousQueue();
         amqpAdmin.declareQueue(queue);
 
         Span producerSpan = tracer.nextSpan().name("rabbit-propagation-test").start();
