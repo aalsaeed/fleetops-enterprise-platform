@@ -48,7 +48,10 @@ class HttpAuditRecorderTest {
         when(traceContext.spanId()).thenReturn("00f067aa0ba902b7");
 
         AtomicReference<RecordAuditEventCommand> captured = new AtomicReference<>();
-        HttpAuditRecorder recorder = new HttpAuditRecorder(captured::set, tracer);
+        HttpAuditRecorder recorder = new HttpAuditRecorder(command -> {
+            captured.set(command);
+            return null;
+        }, tracer);
 
         recorder.record(
                 AuditRouteRegistry.AuditRoute.created("TRIP_CREATE", "TRIP"),
