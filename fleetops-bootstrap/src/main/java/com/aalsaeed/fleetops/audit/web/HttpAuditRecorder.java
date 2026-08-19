@@ -3,6 +3,8 @@ package com.aalsaeed.fleetops.audit.web;
 import com.aalsaeed.fleetops.audit.application.port.in.RecordAuditEventCommand;
 import com.aalsaeed.fleetops.audit.application.port.in.RecordAuditEventUseCase;
 import com.aalsaeed.fleetops.audit.domain.AuditOutcome;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -11,8 +13,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 @Component
@@ -22,9 +26,11 @@ final class HttpAuditRecorder {
     private static final String ANONYMOUS_SUBJECT = "anonymous";
 
     private final RecordAuditEventUseCase recordAuditEventUseCase;
+    private final Tracer tracer;
 
-    HttpAuditRecorder(RecordAuditEventUseCase recordAuditEventUseCase) {
-        this.recordAuditEventUseCase = recordAuditEventUseCase;
+    HttpAuditRecorder(RecordAuditEventUseCase recordAuditEventUseCase, Tracer tracer) {
+        this.recordAuditEventUseCase = Objects.requireNonNull(recordAuditEventUseCase);
+        this.tracer = Objects.requireNonNull(tracer);
     }
 
     void record(
@@ -35,6 +41,7 @@ final class HttpAuditRecorder {
             Map<String, String> metadata) {
 
         AuditActor actor = currentActor();
+        Map<String, String> enrichedMetadata = withTraceContext(metadata);
         try {
             recordAuditEventUseCase.record(new RecordAuditEventCommand(
                     actor.subject(),
@@ -45,7 +52,7 @@ final class HttpAuditRecorder {
                     resourceId,
                     outcome,
                     correlationId,
-                    metadata));
+                    enrichedMetadata));
         } catch (RuntimeException exception) {
             // Audit persistence is deliberately isolated from the already-completed business operation.
             // The failure is surfaced to operations through logs instead of replacing the HTTP result.
@@ -55,6 +62,24 @@ final class HttpAuditRecorder {
                     correlationId,
                     exception);
         }
+    }
+
+    private Map<String, String> withTraceContext(Map<String, String> metadata) {
+        LinkedHashMap<String, String> enriched = new LinkedHashMap<>(Objects.requireNonNull(metadata));
+        Span currentSpan = tracer.currentSpan();
+        if (currentSpan == null) {
+            return Map.copyOf(enriched);
+        }
+
+        String traceId = currentSpan.context().traceId();
+        String spanId = currentSpan.context().spanId();
+        if (traceId != null && !traceId.isBlank()) {
+            enriched.putIfAbsent("traceId", traceId);
+        }
+        if (spanId != null && !spanId.isBlank()) {
+            enriched.putIfAbsent("spanId", spanId);
+        }
+        return Map.copyOf(enriched);
     }
 
     private static AuditActor currentActor() {
