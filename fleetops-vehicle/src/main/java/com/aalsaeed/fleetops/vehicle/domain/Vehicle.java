@@ -10,6 +10,7 @@ public final class Vehicle {
     private final VehicleType type;
     private final String serialNumber;
     private VehicleStatus status;
+    private final Long revision;
 
     private Vehicle(
             VehicleId id,
@@ -17,13 +18,15 @@ public final class Vehicle {
             String description,
             VehicleType type,
             String serialNumber,
-            VehicleStatus status) {
+            VehicleStatus status,
+            Long revision) {
         this.id = Objects.requireNonNull(id, "Vehicle ID cannot be null");
         this.externalReference = requireText(externalReference, "External reference");
         this.description = requireText(description, "Description");
         this.type = Objects.requireNonNull(type, "Vehicle type cannot be null");
         this.serialNumber = normalizeOptionalText(serialNumber);
         this.status = Objects.requireNonNull(status, "Vehicle status cannot be null");
+        this.revision = requireRevision(revision);
     }
 
     public static Vehicle create(
@@ -37,7 +40,8 @@ public final class Vehicle {
                 description,
                 type,
                 serialNumber,
-                VehicleStatus.ACTIVE);
+                VehicleStatus.ACTIVE,
+                null);
     }
 
     public static Vehicle restore(
@@ -47,7 +51,18 @@ public final class Vehicle {
             VehicleType type,
             String serialNumber,
             VehicleStatus status) {
-        return new Vehicle(id, externalReference, description, type, serialNumber, status);
+        return restore(id, externalReference, description, type, serialNumber, status, null);
+    }
+
+    public static Vehicle restore(
+            VehicleId id,
+            String externalReference,
+            String description,
+            VehicleType type,
+            String serialNumber,
+            VehicleStatus status,
+            Long revision) {
+        return new Vehicle(id, externalReference, description, type, serialNumber, status, revision);
     }
 
     public void changeStatus(VehicleStatus target) {
@@ -82,6 +97,10 @@ public final class Vehicle {
         return status;
     }
 
+    public Long revision() {
+        return revision;
+    }
+
     private static String requireText(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(fieldName + " cannot be blank");
@@ -94,5 +113,12 @@ public final class Vehicle {
             return null;
         }
         return value.trim();
+    }
+
+    private static Long requireRevision(Long revision) {
+        if (revision != null && revision < 0) {
+            throw new IllegalArgumentException("Vehicle revision cannot be negative");
+        }
+        return revision;
     }
 }

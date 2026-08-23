@@ -9,6 +9,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 import java.util.UUID;
 
@@ -36,6 +37,10 @@ class DriverJpaEntity {
     @Column(name = "status", nullable = false, length = 20)
     private DriverStatus status;
 
+    @Version
+    @Column(name = "revision", nullable = false)
+    private Long revision;
+
     protected DriverJpaEntity() {
     }
 
@@ -45,13 +50,15 @@ class DriverJpaEntity {
             String firstName,
             String lastName,
             String phoneNumber,
-            DriverStatus status) {
+            DriverStatus status,
+            Long revision) {
         this.id = id;
         this.externalReference = externalReference;
         this.firstName = firstName;
         this.lastName = lastName;
         this.phoneNumber = phoneNumber;
         this.status = status;
+        this.revision = revision;
     }
 
     static DriverJpaEntity fromDomain(Driver driver) {
@@ -61,7 +68,8 @@ class DriverJpaEntity {
                 driver.firstName(),
                 driver.lastName(),
                 driver.phoneNumber(),
-                driver.status());
+                driver.status(),
+                driver.revision());
     }
 
     Driver toDomain() {
@@ -71,6 +79,7 @@ class DriverJpaEntity {
                 firstName,
                 lastName,
                 phoneNumber,
-                status);
+                status,
+                revision);
     }
 }

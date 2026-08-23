@@ -10,6 +10,7 @@ public final class Trip {
     private VehicleReference primaryVehicleReference;
     private VehicleReference attachmentVehicleReference;
     private TripStatus status;
+    private final Long revision;
 
     private Trip(
             TripId id,
@@ -17,13 +18,15 @@ public final class Trip {
             DriverReference driverReference,
             VehicleReference primaryVehicleReference,
             VehicleReference attachmentVehicleReference,
-            TripStatus status) {
+            TripStatus status,
+            Long revision) {
         this.id = Objects.requireNonNull(id, "Trip ID cannot be null");
         this.externalReference = requireText(externalReference, "External reference");
         this.driverReference = driverReference;
         this.primaryVehicleReference = primaryVehicleReference;
         this.attachmentVehicleReference = attachmentVehicleReference;
         this.status = Objects.requireNonNull(status, "Trip status cannot be null");
+        this.revision = requireRevision(revision);
         validateState();
     }
 
@@ -34,7 +37,8 @@ public final class Trip {
                 null,
                 null,
                 null,
-                TripStatus.PLANNED);
+                TripStatus.PLANNED,
+                null);
     }
 
     public static Trip restore(
@@ -44,13 +48,32 @@ public final class Trip {
             VehicleReference primaryVehicleReference,
             VehicleReference attachmentVehicleReference,
             TripStatus status) {
+        return restore(
+                id,
+                externalReference,
+                driverReference,
+                primaryVehicleReference,
+                attachmentVehicleReference,
+                status,
+                null);
+    }
+
+    public static Trip restore(
+            TripId id,
+            String externalReference,
+            DriverReference driverReference,
+            VehicleReference primaryVehicleReference,
+            VehicleReference attachmentVehicleReference,
+            TripStatus status,
+            Long revision) {
         return new Trip(
                 id,
                 externalReference,
                 driverReference,
                 primaryVehicleReference,
                 attachmentVehicleReference,
-                status);
+                status,
+                revision);
     }
 
     public void assignResources(
@@ -113,6 +136,10 @@ public final class Trip {
         return status;
     }
 
+    public Long revision() {
+        return revision;
+    }
+
     private void transitionTo(TripStatus target) {
         Objects.requireNonNull(target, "Target trip status cannot be null");
         if (!status.canTransitionTo(target)) {
@@ -153,5 +180,12 @@ public final class Trip {
             throw new IllegalArgumentException(fieldName + " cannot be blank");
         }
         return value.trim();
+    }
+
+    private static Long requireRevision(Long revision) {
+        if (revision != null && revision < 0) {
+            throw new IllegalArgumentException("Trip revision cannot be negative");
+        }
+        return revision;
     }
 }
