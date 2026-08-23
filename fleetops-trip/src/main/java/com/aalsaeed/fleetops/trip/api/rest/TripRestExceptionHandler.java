@@ -1,5 +1,6 @@
 package com.aalsaeed.fleetops.trip.api.rest;
 
+import com.aalsaeed.fleetops.common.concurrency.OptimisticConcurrencyConflictException;
 import com.aalsaeed.fleetops.trip.application.exception.InvalidTripResourceRoleException;
 import com.aalsaeed.fleetops.trip.application.exception.TripAlreadyExistsException;
 import com.aalsaeed.fleetops.trip.application.exception.TripNotFoundException;
@@ -52,6 +53,17 @@ public class TripRestExceptionHandler {
     @ExceptionHandler(InvalidTripStatusTransitionException.class)
     ProblemDetail handleInvalidStatusTransition(InvalidTripStatusTransitionException exception) {
         return createProblem(HttpStatus.CONFLICT, "INVALID_TRIP_STATUS_TRANSITION", exception.getMessage());
+    }
+
+    @ExceptionHandler(OptimisticConcurrencyConflictException.class)
+    ProblemDetail handleConcurrencyConflict(OptimisticConcurrencyConflictException exception) {
+        ProblemDetail detail = createProblem(
+                HttpStatus.CONFLICT,
+                "OPTIMISTIC_CONCURRENCY_CONFLICT",
+                exception.getMessage());
+        detail.setProperty("resourceType", exception.resourceType());
+        detail.setProperty("resourceId", exception.resourceId());
+        return detail;
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

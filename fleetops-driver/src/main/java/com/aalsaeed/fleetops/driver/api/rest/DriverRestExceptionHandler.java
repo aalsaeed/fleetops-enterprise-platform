@@ -1,5 +1,6 @@
 package com.aalsaeed.fleetops.driver.api.rest;
 
+import com.aalsaeed.fleetops.common.concurrency.OptimisticConcurrencyConflictException;
 import com.aalsaeed.fleetops.driver.application.exception.DriverAlreadyExistsException;
 import com.aalsaeed.fleetops.driver.application.exception.DriverNotFoundException;
 import com.aalsaeed.fleetops.driver.domain.InvalidDriverStatusTransitionException;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@RestControllerAdvice
+@RestControllerAdvice(assignableTypes = DriverController.class)
 public class DriverRestExceptionHandler {
 
     @ExceptionHandler(DriverNotFoundException.class)
@@ -28,6 +29,17 @@ public class DriverRestExceptionHandler {
     @ExceptionHandler(InvalidDriverStatusTransitionException.class)
     ProblemDetail handleInvalidStatusTransition(InvalidDriverStatusTransitionException exception) {
         return createProblem(HttpStatus.CONFLICT, "INVALID_DRIVER_STATUS_TRANSITION", exception.getMessage());
+    }
+
+    @ExceptionHandler(OptimisticConcurrencyConflictException.class)
+    ProblemDetail handleConcurrencyConflict(OptimisticConcurrencyConflictException exception) {
+        ProblemDetail detail = createProblem(
+                HttpStatus.CONFLICT,
+                "OPTIMISTIC_CONCURRENCY_CONFLICT",
+                exception.getMessage());
+        detail.setProperty("resourceType", exception.resourceType());
+        detail.setProperty("resourceId", exception.resourceId());
+        return detail;
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

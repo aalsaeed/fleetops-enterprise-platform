@@ -1,8 +1,10 @@
 package com.aalsaeed.fleetops.trip.infrastructure.persistence.jpa;
 
+import com.aalsaeed.fleetops.common.concurrency.OptimisticConcurrencyConflictException;
 import com.aalsaeed.fleetops.trip.application.port.out.TripRepository;
 import com.aalsaeed.fleetops.trip.domain.Trip;
 import com.aalsaeed.fleetops.trip.domain.TripId;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
 import java.util.Objects;
@@ -20,7 +22,14 @@ public class JpaTripRepositoryAdapter implements TripRepository {
     @Override
     public Trip save(Trip trip) {
         Objects.requireNonNull(trip, "Trip cannot be null");
-        return repository.save(TripJpaEntity.fromDomain(trip)).toDomain();
+        try {
+            return repository.save(TripJpaEntity.fromDomain(trip)).toDomain();
+        } catch (OptimisticLockingFailureException exception) {
+            throw new OptimisticConcurrencyConflictException(
+                    "Trip",
+                    trip.id().value().toString(),
+                    exception);
+        }
     }
 
     @Override

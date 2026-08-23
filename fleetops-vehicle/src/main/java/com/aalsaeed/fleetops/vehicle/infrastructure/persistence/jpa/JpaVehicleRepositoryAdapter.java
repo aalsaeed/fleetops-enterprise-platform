@@ -1,8 +1,10 @@
 package com.aalsaeed.fleetops.vehicle.infrastructure.persistence.jpa;
 
+import com.aalsaeed.fleetops.common.concurrency.OptimisticConcurrencyConflictException;
 import com.aalsaeed.fleetops.vehicle.application.port.out.VehicleRepository;
 import com.aalsaeed.fleetops.vehicle.domain.Vehicle;
 import com.aalsaeed.fleetops.vehicle.domain.VehicleId;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
 import java.util.Objects;
@@ -20,7 +22,14 @@ public class JpaVehicleRepositoryAdapter implements VehicleRepository {
     @Override
     public Vehicle save(Vehicle vehicle) {
         Objects.requireNonNull(vehicle, "Vehicle cannot be null");
-        return repository.save(VehicleJpaEntity.fromDomain(vehicle)).toDomain();
+        try {
+            return repository.save(VehicleJpaEntity.fromDomain(vehicle)).toDomain();
+        } catch (OptimisticLockingFailureException exception) {
+            throw new OptimisticConcurrencyConflictException(
+                    "Vehicle",
+                    vehicle.id().value().toString(),
+                    exception);
+        }
     }
 
     @Override
