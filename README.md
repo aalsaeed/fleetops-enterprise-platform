@@ -9,7 +9,7 @@
 
 It combines explicit domain boundaries, reliable asynchronous integration, centralized identity and RBAC, immutable auditability, operational observability, optimistic concurrency control, and reproducible containerized deployment in one runnable system.
 
-> **Portfolio status:** the core platform is complete. Current work focuses on documentation, architecture communication, and presentation polish rather than adding arbitrary features.
+> **Portfolio status:** the core platform is complete. The repository now includes an architecture case study, runtime demo path, presentation narrative, and technical interview guide; the remaining portfolio enhancement is curated runtime evidence imagery.
 
 ## Why This Project Matters
 
@@ -186,18 +186,24 @@ The CI workflow additionally builds the runtime image, verifies the non-root use
 
 ## Portfolio Review Guide
 
-If you are reviewing FleetOps as an engineering portfolio, use this path:
+If you are reviewing FleetOps as an engineering portfolio, start with the [FleetOps Portfolio Pack](docs/portfolio/README.md), then use this path:
 
 1. Read the [Engineering Case Study](docs/portfolio/CASE-STUDY.md) for the problems, architecture decisions, reliability model, security, observability, tradeoffs, and evidence map.
 2. Review the [Architecture Overview](docs/architecture/README.md) for the module boundaries and runtime/integration diagrams.
 3. Use the [Portfolio Demo Runbook](docs/portfolio/DEMO-RUNBOOK.md) for a repeatable runtime demonstration and focused evidence checklist covering Compose, Grafana, Jaeger, Keycloak, RabbitMQ, and GitHub Actions.
-4. Inspect the [Architecture Decision Records](docs/adr/) to see why major implementation choices were made.
+4. Use the [Presentation Narrative](docs/portfolio/PRESENTATION.md) for a concise seven-slide explanation of the platform.
+5. Use the [Technical Interview Guide](docs/portfolio/INTERVIEW-GUIDE.md) for architecture questions covering modular monolith design, reliable messaging, security, concurrency, observability, packaging, CI, and scaling tradeoffs.
+6. Inspect the [Architecture Decision Records](docs/adr/) to see why major implementation choices were made.
 
 ## Documentation
 
+- [FleetOps Portfolio Pack](docs/portfolio/README.md)
 - [Architecture](docs/architecture/README.md)
 - [Engineering Case Study](docs/portfolio/CASE-STUDY.md)
 - [Portfolio Demo Runbook](docs/portfolio/DEMO-RUNBOOK.md)
+- [Presentation Narrative](docs/portfolio/PRESENTATION.md)
+- [Technical Interview Guide](docs/portfolio/INTERVIEW-GUIDE.md)
+- [Evidence Asset Guide](docs/portfolio/assets/README.md)
 - [Security model](docs/security/README.md)
 - [Local Keycloak setup](docs/security/keycloak-local.md)
 - [Local monitoring with Prometheus and Grafana](docs/observability/local-monitoring.md)
