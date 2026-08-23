@@ -10,6 +10,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 import java.util.UUID;
 
@@ -38,6 +39,10 @@ class VehicleJpaEntity {
     @Column(name = "status", nullable = false, length = 20)
     private VehicleStatus status;
 
+    @Version
+    @Column(name = "revision", nullable = false)
+    private Long revision;
+
     protected VehicleJpaEntity() {
     }
 
@@ -47,13 +52,15 @@ class VehicleJpaEntity {
             String description,
             VehicleType type,
             String serialNumber,
-            VehicleStatus status) {
+            VehicleStatus status,
+            Long revision) {
         this.id = id;
         this.externalReference = externalReference;
         this.description = description;
         this.type = type;
         this.serialNumber = serialNumber;
         this.status = status;
+        this.revision = revision;
     }
 
     static VehicleJpaEntity fromDomain(Vehicle vehicle) {
@@ -63,7 +70,8 @@ class VehicleJpaEntity {
                 vehicle.description(),
                 vehicle.type(),
                 vehicle.serialNumber(),
-                vehicle.status());
+                vehicle.status(),
+                vehicle.revision());
     }
 
     Vehicle toDomain() {
@@ -73,6 +81,7 @@ class VehicleJpaEntity {
                 description,
                 type,
                 serialNumber,
-                status);
+                status,
+                revision);
     }
 }
