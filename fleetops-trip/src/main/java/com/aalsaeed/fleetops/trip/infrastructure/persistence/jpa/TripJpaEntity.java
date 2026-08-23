@@ -11,6 +11,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 import java.util.UUID;
 
@@ -38,6 +39,10 @@ class TripJpaEntity {
     @Column(name = "status", nullable = false, length = 20)
     private TripStatus status;
 
+    @Version
+    @Column(name = "revision", nullable = false)
+    private Long revision;
+
     protected TripJpaEntity() {
     }
 
@@ -47,13 +52,15 @@ class TripJpaEntity {
             UUID driverId,
             UUID primaryVehicleId,
             UUID attachmentVehicleId,
-            TripStatus status) {
+            TripStatus status,
+            Long revision) {
         this.id = id;
         this.externalReference = externalReference;
         this.driverId = driverId;
         this.primaryVehicleId = primaryVehicleId;
         this.attachmentVehicleId = attachmentVehicleId;
         this.status = status;
+        this.revision = revision;
     }
 
     static TripJpaEntity fromDomain(Trip trip) {
@@ -63,7 +70,8 @@ class TripJpaEntity {
                 trip.driverReference() == null ? null : trip.driverReference().value(),
                 trip.primaryVehicleReference() == null ? null : trip.primaryVehicleReference().value(),
                 trip.attachmentVehicleReference() == null ? null : trip.attachmentVehicleReference().value(),
-                trip.status());
+                trip.status(),
+                trip.revision());
     }
 
     Trip toDomain() {
@@ -73,6 +81,7 @@ class TripJpaEntity {
                 driverId == null ? null : DriverReference.of(driverId),
                 primaryVehicleId == null ? null : VehicleReference.of(primaryVehicleId),
                 attachmentVehicleId == null ? null : VehicleReference.of(attachmentVehicleId),
-                status);
+                status,
+                revision);
     }
 }
