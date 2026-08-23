@@ -1,8 +1,10 @@
 package com.aalsaeed.fleetops.driver.infrastructure.persistence.jpa;
 
+import com.aalsaeed.fleetops.common.concurrency.OptimisticConcurrencyConflictException;
 import com.aalsaeed.fleetops.driver.application.port.out.DriverRepository;
 import com.aalsaeed.fleetops.driver.domain.Driver;
 import com.aalsaeed.fleetops.driver.domain.DriverId;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
 import java.util.Objects;
@@ -20,7 +22,14 @@ public class JpaDriverRepositoryAdapter implements DriverRepository {
     @Override
     public Driver save(Driver driver) {
         Objects.requireNonNull(driver, "Driver cannot be null");
-        return repository.save(DriverJpaEntity.fromDomain(driver)).toDomain();
+        try {
+            return repository.save(DriverJpaEntity.fromDomain(driver)).toDomain();
+        } catch (OptimisticLockingFailureException exception) {
+            throw new OptimisticConcurrencyConflictException(
+                    "Driver",
+                    driver.id().value().toString(),
+                    exception);
+        }
     }
 
     @Override
