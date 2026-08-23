@@ -1,5 +1,6 @@
 package com.aalsaeed.fleetops.concurrency;
 
+import com.aalsaeed.fleetops.common.concurrency.OptimisticConcurrencyConflictException;
 import com.aalsaeed.fleetops.driver.application.port.out.DriverRepository;
 import com.aalsaeed.fleetops.driver.domain.Driver;
 import com.aalsaeed.fleetops.driver.domain.DriverStatus;
@@ -19,7 +20,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.postgresql.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgresSQLContainer;
 
 import java.util.UUID;
 
@@ -32,7 +33,7 @@ class OptimisticLockingIntegrationTest {
 
     @Container
     @ServiceConnection
-    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17-alpine")
+    static final PostgresSQLContainer POSTGRES = new PostgresSQLContainer("postgres:17-alpine")
             .withDatabaseName("fleetops_concurrency_test")
             .withUsername("fleetops")
             .withPassword("fleetops_test");
@@ -66,7 +67,11 @@ class OptimisticLockingIntegrationTest {
 
         staleWriter.changeStatus(DriverStatus.INACTIVE);
         assertThatThrownBy(() -> driverRepository.save(staleWriter))
-                .isInstanceOf(OptimisticLockingFailureException.class);
+                .isInstanceOfSatisfying(OptimisticConcurrencyConflictException.class, conflict -> {
+                    assertThat(conflict.resourceType()).isEqualTo("Driver");
+                    assertThat(conflict.resourceId()).isEqualTo(created.id().value().toString());
+                    assertThat(conflict.getCause()).isInstanceOf(OptimisticLockingFailureException.class);
+                });
 
         Driver restored = driverRepository.findById(created.id()).orElseThrow();
         assertThat(restored.status()).isEqualTo(DriverStatus.SUSPENDED);
@@ -93,7 +98,11 @@ class OptimisticLockingIntegrationTest {
 
         staleWriter.changeStatus(VehicleStatus.INACTIVE);
         assertThatThrownBy(() -> vehicleRepository.save(staleWriter))
-                .isInstanceOf(OptimisticLockingFailureException.class);
+                .isInstanceOfSatisfying(OptimisticConcurrencyConflictException.class, conflict -> {
+                    assertThat(conflict.resourceType()).isEqualTo("Vehicle");
+                    assertThat(conflict.resourceId()).isEqualTo(created.id().value().toString());
+                    assertThat(conflict.getCause()).isInstanceOf(OptimisticLockingFailureException.class);
+                });
 
         Vehicle restored = vehicleRepository.findById(created.id()).orElseThrow();
         assertThat(restored.status()).isEqualTo(VehicleStatus.MAINTENANCE);
@@ -124,7 +133,11 @@ class OptimisticLockingIntegrationTest {
                 VehicleReference.of(UUID.fromString("44444444-dddd-4444-8888-444444444444")),
                 null);
         assertThatThrownBy(() -> tripRepository.save(staleWriter))
-                .isInstanceOf(OptimisticLockingFailureException.class);
+                .isInstanceOfSatisfying(OptimisticConcurrencyConflictException.class, conflict -> {
+                    assertThat(conflict.resourceType()).isEqualTo("Trip");
+                    assertThat(conflict.resourceId()).isEqualTo(created.id().value().toString());
+                    assertThat(conflict.getCause()).isInstanceOf(OptimisticLockingFailureException.class);
+                });
 
         Trip restored = tripRepository.findById(created.id()).orElseThrow();
         assertThat(restored.status()).isEqualTo(TripStatus.ASSIGNED);
