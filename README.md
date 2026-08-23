@@ -184,9 +184,18 @@ The repository includes unit and integration coverage for domain rules, REST API
 
 The CI workflow additionally builds the runtime image, verifies the non-root user, validates the Compose application profile, starts the stack, and checks the readiness endpoint.
 
+## Portfolio Review Guide
+
+If you are reviewing FleetOps as an engineering portfolio, these two documents provide the shortest path through the project:
+
+- [Engineering Case Study](docs/portfolio/CASE-STUDY.md) — the problems, architecture decisions, reliability model, security, observability, tradeoffs, and evidence map.
+- [Portfolio Demo Runbook](docs/portfolio/DEMO-RUNBOOK.md) — a repeatable runtime demonstration and a focused screenshot/evidence checklist for Compose, Grafana, Jaeger, Keycloak, RabbitMQ, and GitHub Actions.
+
 ## Documentation
 
 - [Architecture](docs/architecture/README.md)
+- [Engineering Case Study](docs/portfolio/CASE-STUDY.md)
+- [Portfolio Demo Runbook](docs/portfolio/DEMO-RUNBOOK.md)
 - [Security model](docs/security/README.md)
 - [Local Keycloak setup](docs/security/keycloak-local.md)
 - [Local monitoring with Prometheus and Grafana](docs/observability/local-monitoring.md)
