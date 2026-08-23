@@ -57,6 +57,44 @@ services:
     volumes:
       - ./infra/keycloak/fleetops-realm.json:/opt/keycloak/data/import/fleetops-realm.json:ro
 
+  fleetops:
+    profiles: ["application"]
+    build:
+      context: .
+    image: ${FLEETOPS_IMAGE:-fleetops-enterprise-platform:local}
+    init: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-fleetops}
+      DB_USERNAME: ${POSTGRES_USER:-fleetops}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-fleetops_dev}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: ${RABBITMQ_USER:-fleetops}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-fleetops_dev}
+      SECURITY_JWT_ISSUER_URI: ${SECURITY_JWT_ISSUER_URI:-http://127.0.0.1:8180/realms/fleetops}
+      SECURITY_JWK_SET_URI: http://keycloak:8080/realms/fleetops/protocol/openid-connect/certs
+      OTEL_TRACES_EXPORTER_ENABLED: ${OTEL_TRACES_EXPORTER_ENABLED:-false}
+      OTEL_TRACES_SAMPLING_PROBABILITY: ${OTEL_TRACES_SAMPLING_PROBABILITY:-0.1}
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${FLEETOPS_CONTAINER_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OBSERVABILITY_INTEGRATION_SNAPSHOT_TTL_MS: ${OBSERVABILITY_INTEGRATION_SNAPSHOT_TTL_MS:-5000}
+      SERVER_PORT: 8080
+    ports:
+      - "${FLEETOPS_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080'"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+    stop_grace_period: 20s
+
   jaeger:
     image: cr.jaegertracing.io/jaegertracing/jaeger:2.20.0
     profiles: ["observability"]
