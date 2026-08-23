@@ -32,3 +32,31 @@ jobs:
       - name: Verify non-root runtime user
         run: |
           test "$(docker image inspect --format '{{.Config.User}}' fleetops-enterprise-platform:ci)" = "10001:10001"
+
+      - name: Validate Compose application profile
+        run: docker compose --profile application config >/dev/null
+
+      - name: Smoke test containerized application
+        env:
+          FLEETOPS_IMAGE: fleetops-enterprise-platform:ci
+        run: |
+          set -euo pipefail
+
+          cleanup() {
+            docker compose --profile application down --volumes --remove-orphans || true
+          }
+          trap cleanup EXIT
+
+          docker compose --profile application up --detach --no-build
+
+          for attempt in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:8080/actuator/health/readiness | grep --quiet '"status":"UP"'; then
+              echo "FleetOps readiness probe is UP"
+              exit 0
+            fi
+            sleep 2
+          done
+
+          docker compose --profile application ps
+          docker compose --profile application logs fleetops postgres rabbitmq keycloak
+          exit 1
