@@ -1,0 +1,7 @@
+**
+!Dockerfile
+!fleetops-bootstrap/
+fleetops-bootstrap/*
+!fleetops-bootstrap/target/
+fleetops-bootstrap/target/*
+!fleetops-bootstrap/target/fleetops-bootstrap-*.jar
