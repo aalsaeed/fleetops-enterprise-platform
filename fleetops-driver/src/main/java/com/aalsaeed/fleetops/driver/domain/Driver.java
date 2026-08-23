@@ -13,6 +13,7 @@ public final class Driver {
     private final String lastName;
     private final String phoneNumber;
     private DriverStatus status;
+    private final Long revision;
 
     private Driver(
             DriverId id,
@@ -20,13 +21,15 @@ public final class Driver {
             String firstName,
             String lastName,
             String phoneNumber,
-            DriverStatus status) {
+            DriverStatus status,
+            Long revision) {
         this.id = Objects.requireNonNull(id, "Driver ID cannot be null");
         this.externalReference = requireText(externalReference, "External reference");
         this.firstName = requireText(firstName, "First name");
         this.lastName = requireText(lastName, "Last name");
         this.phoneNumber = requirePhone(phoneNumber);
         this.status = Objects.requireNonNull(status, "Driver status cannot be null");
+        this.revision = requireRevision(revision);
     }
 
     public static Driver create(
@@ -40,7 +43,8 @@ public final class Driver {
                 firstName,
                 lastName,
                 phoneNumber,
-                DriverStatus.ACTIVE);
+                DriverStatus.ACTIVE,
+                null);
     }
 
     public static Driver restore(
@@ -50,7 +54,18 @@ public final class Driver {
             String lastName,
             String phoneNumber,
             DriverStatus status) {
-        return new Driver(id, externalReference, firstName, lastName, phoneNumber, status);
+        return restore(id, externalReference, firstName, lastName, phoneNumber, status, null);
+    }
+
+    public static Driver restore(
+            DriverId id,
+            String externalReference,
+            String firstName,
+            String lastName,
+            String phoneNumber,
+            DriverStatus status,
+            Long revision) {
+        return new Driver(id, externalReference, firstName, lastName, phoneNumber, status, revision);
     }
 
     public void changeStatus(DriverStatus target) {
@@ -85,6 +100,10 @@ public final class Driver {
         return status;
     }
 
+    public Long revision() {
+        return revision;
+    }
+
     private static String requireText(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(fieldName + " cannot be blank");
@@ -98,5 +117,12 @@ public final class Driver {
             throw new IllegalArgumentException("Phone number must use E.164 format");
         }
         return phone;
+    }
+
+    private static Long requireRevision(Long revision) {
+        if (revision != null && revision < 0) {
+            throw new IllegalArgumentException("Driver revision cannot be negative");
+        }
+        return revision;
     }
 }
