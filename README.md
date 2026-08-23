@@ -186,10 +186,12 @@ The CI workflow additionally builds the runtime image, verifies the non-root use
 
 ## Portfolio Review Guide
 
-If you are reviewing FleetOps as an engineering portfolio, these two documents provide the shortest path through the project:
+If you are reviewing FleetOps as an engineering portfolio, use this path:
 
-- [Engineering Case Study](docs/portfolio/CASE-STUDY.md) — the problems, architecture decisions, reliability model, security, observability, tradeoffs, and evidence map.
-- [Portfolio Demo Runbook](docs/portfolio/DEMO-RUNBOOK.md) — a repeatable runtime demonstration and a focused screenshot/evidence checklist for Compose, Grafana, Jaeger, Keycloak, RabbitMQ, and GitHub Actions.
+1. Read the [Engineering Case Study](docs/portfolio/CASE-STUDY.md) for the problems, architecture decisions, reliability model, security, observability, tradeoffs, and evidence map.
+2. Review the [Architecture Overview](docs/architecture/README.md) for the module boundaries and runtime/integration diagrams.
+3. Use the [Portfolio Demo Runbook](docs/portfolio/DEMO-RUNBOOK.md) for a repeatable runtime demonstration and focused evidence checklist covering Compose, Grafana, Jaeger, Keycloak, RabbitMQ, and GitHub Actions.
+4. Inspect the [Architecture Decision Records](docs/adr/) to see why major implementation choices were made.
 
 ## Documentation
 
