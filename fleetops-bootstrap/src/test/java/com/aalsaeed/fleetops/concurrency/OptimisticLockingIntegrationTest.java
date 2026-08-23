@@ -20,7 +20,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.postgresql.PostgresSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.util.UUID;
 
@@ -33,7 +33,7 @@ class OptimisticLockingIntegrationTest {
 
     @Container
     @ServiceConnection
-    static final PostgresSQLContainer POSTGRES = new PostgresSQLContainer("postgres:17-alpine")
+    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17-alpine")
             .withDatabaseName("fleetops_concurrency_test")
             .withUsername("fleetops")
             .withPassword("fleetops_test");
