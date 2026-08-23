@@ -25,3 +25,10 @@ jobs:
 
       - name: Verify
         run: mvn --batch-mode --update-snapshots verify
+
+      - name: Build OCI image
+        run: docker build --tag fleetops-enterprise-platform:ci .
+
+      - name: Verify non-root runtime user
+        run: |
+          test "$(docker image inspect --format '{{.Config.User}}' fleetops-enterprise-platform:ci)" = "10001:10001"
