@@ -52,6 +52,88 @@ The JVM receives container-aware defaults through `JAVA_TOOL_OPTIONS`: percentag
 
 ## Health and observability
 
-FleetOps continues to expose its existing Actuator health and observability endpoints. Liveness/readiness probe support remains enabled in Spring configuration. The image itself does not embed infrastructure-specific health tooling; orchestration-specific probe wiring is handled by the deployment environment.
+FleetOps continues to expose its existing Actuator health and observability endpoints. Liveness/readiness probe support remains enabled in Spring configuration. The image itself does not embed infrastructure-specific HTTP tooling; orchestration-specific probe wiring remains external to the application image.
 
-A following increment will add an optional Docker Compose application profile so FleetOps can join the existing PostgreSQL, RabbitMQ, Redis, Keycloak, Prometheus, Grafana, and Jaeger stack without requiring IntelliJ.
+The Compose application service uses a lightweight TCP container health check, while CI and deployment operators verify the actual Spring Boot readiness endpoint:
+
+```text
+GET /actuator/health/readiness
+```
+
+## Run FleetOps inside Docker Compose
+
+The `application` profile runs FleetOps from the hardened OCI image together with the existing PostgreSQL, RabbitMQ, Redis, and Keycloak services.
+
+Build the verified jar and image first:
+
+```bash
+mvn clean verify
+docker build --tag fleetops-enterprise-platform:local .
+```
+
+Then start the containerized application stack:
+
+```bash
+docker compose --profile application up -d --no-build
+```
+
+FleetOps is available at:
+
+```text
+http://127.0.0.1:8080
+```
+
+Verify readiness:
+
+```bash
+curl --fail http://127.0.0.1:8080/actuator/health/readiness
+```
+
+Expected status is `UP`.
+
+The Compose service uses internal service DNS for infrastructure connectivity:
+
+- PostgreSQL: `postgres:5432`
+- RabbitMQ: `rabbitmq:5672`
+- Keycloak JWK endpoint: `keycloak:8080`
+
+The JWT issuer intentionally remains the public/local issuer (`http://127.0.0.1:8180/realms/fleetops` by default), while the application fetches signing keys through Keycloak's internal Compose address. This keeps token issuer validation consistent with tokens obtained from the host-facing Keycloak endpoint.
+
+## Run the complete application + observability stack
+
+After the image exists locally, start both profiles:
+
+```bash
+docker compose --profile application --profile observability up -d --no-build
+```
+
+This starts FleetOps plus PostgreSQL, RabbitMQ, Redis, Keycloak, Jaeger, Prometheus, and Grafana. Prometheus continues to scrape the host-published FleetOps port through `host.docker.internal`, so the same scrape configuration works whether FleetOps is started from IntelliJ or from the Compose application profile.
+
+Useful local endpoints:
+
+```text
+FleetOps readiness: http://127.0.0.1:8080/actuator/health/readiness
+Keycloak:           http://127.0.0.1:8180
+Prometheus:         http://127.0.0.1:9090
+Grafana:            http://127.0.0.1:3000
+Jaeger:             http://127.0.0.1:16686
+RabbitMQ UI:        http://127.0.0.1:15672
+```
+
+OTLP trace export stays disabled by default. When observability is running, enable it through `OTEL_TRACES_EXPORTER_ENABLED=true`; the Compose application service uses `http://jaeger:4318/v1/traces` by default through `FLEETOPS_CONTAINER_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`.
+
+## Stop the stack
+
+Stop containers while keeping persistent volumes:
+
+```bash
+docker compose --profile application --profile observability down
+```
+
+For a complete local reset including PostgreSQL, Redis, Prometheus, and Grafana volumes:
+
+```bash
+docker compose --profile application --profile observability down -v
+```
+
+The Compose topology is intended for development, demonstrations, and CI smoke validation. Production environments should run the same OCI image under an orchestrator with externally managed secrets, durable infrastructure, and platform-native liveness/readiness probes.
