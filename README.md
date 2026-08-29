@@ -9,8 +9,7 @@
 
 It combines explicit domain boundaries, reliable asynchronous integration, centralized identity and RBAC, immutable auditability, operational observability, optimistic concurrency control, and reproducible containerized deployment in one runnable system.
 
-> **Portfolio status:** the core platform is complete. The repository now includes an architecture case study, runtime demo path, presentation narrative, and technical interview guide; the remaining portfolio enhancement is curated runtime evidence imagery.
-
+> **Portfolio status:** the core platform and curated runtime evidence package are complete. The repository includes an architecture case study, repeatable runtime demo, observability evidence, presentation narrative, and technical interview guide.
 ## Why This Project Matters
 
 Fleet software becomes technically difficult when trip state, drivers, vehicles, external ERP workflows, retries, duplicate messages, authorization, auditability, and production diagnostics must remain consistent together.
@@ -183,6 +182,24 @@ mvn --batch-mode verify
 The repository includes unit and integration coverage for domain rules, REST APIs, persistence, Keycloak authorization, audit capture, transactional outbox/inbox behavior, RabbitMQ publishing/consumption, dead-letter behavior, retry/recovery, Prometheus security, OpenTelemetry tracing, and optimistic concurrency.
 
 The CI workflow additionally builds the runtime image, verifies the non-root user, validates the Compose application profile, starts the stack, and checks the readiness endpoint.
+
+## Runtime Evidence
+
+The repository includes curated runtime evidence demonstrating that the documented architecture is executable rather than conceptual.
+
+### Operational Observability
+
+![FleetOps Grafana Operations Dashboard](docs/portfolio/assets/02-grafana-operations.png)
+
+### Distributed Tracing
+
+![FleetOps Jaeger Distributed Trace](docs/portfolio/assets/03-jaeger-trace.png)
+
+### Reproducible Runtime
+
+![FleetOps Docker Compose Runtime](docs/portfolio/assets/01-compose-stack.png)
+
+The complete evidence set, including Keycloak RBAC, RabbitMQ integration topology, and GitHub Actions CI verification, is available in the [Portfolio Pack](docs/portfolio/README.md).
 
 ## Portfolio Review Guide
 

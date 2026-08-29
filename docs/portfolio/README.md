@@ -37,6 +37,45 @@ The preferred public evidence set is intentionally small:
 
 See [Evidence Asset Guide](assets/README.md) for naming and redaction rules.
 
+## Runtime Evidence Gallery
+
+### 1. Complete Runtime Stack
+
+![Docker Compose runtime](assets/01-compose-stack.png)
+
+FleetOps and its supporting PostgreSQL, RabbitMQ, Redis, Keycloak, Prometheus, Grafana, and Jaeger services running together with application readiness confirmed.
+
+### 2. Operational Metrics
+
+![Grafana operations dashboard](assets/02-grafana-operations.png)
+
+Provisioned FleetOps operations dashboard showing integration health, DLQ depth, HTTP activity, messaging state, and JVM runtime metrics.
+
+### 3. Distributed Tracing
+
+![Jaeger distributed trace](assets/03-jaeger-trace.png)
+
+OpenTelemetry trace exported from FleetOps to Jaeger, showing request processing across multiple spans.
+
+### 4. Centralized Identity and RBAC
+
+![Keycloak security configuration](assets/04-keycloak-security.png)
+
+FleetOps Keycloak realm with separate user, operator, and administrator clients demonstrating centralized OAuth2/JWT identity and role separation.
+
+### 5. Asynchronous ERP Integration
+
+![RabbitMQ integration queues](assets/05-rabbitmq-integration.png)
+
+ERP shipment queue and dedicated dead-letter queue demonstrating the runtime messaging and failure-handling topology.
+
+### 6. Automated Verification
+
+![GitHub Actions CI](assets/06-github-actions-ci.png)
+
+Successful CI pipeline verifying Maven tests, OCI image construction, non-root execution, Docker Compose configuration, and application readiness.
+
+
 ## What the Portfolio Should Communicate
 
 A reviewer should be able to conclude that FleetOps demonstrates:

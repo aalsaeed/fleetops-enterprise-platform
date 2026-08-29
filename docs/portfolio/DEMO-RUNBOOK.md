@@ -257,9 +257,9 @@ Keep the final portfolio set small. Five or six strong images are enough.
 | `01-compose-stack.png` | `docker compose ... ps` with healthy FleetOps and supporting services | Reproducible runtime topology |
 | `02-grafana-operations.png` | FleetOps Operations dashboard | Operational metrics and dashboard provisioning |
 | `03-jaeger-trace.png` | FleetOps trace with multiple spans | OpenTelemetry/Jaeger tracing |
-| `04-keycloak-rbac.png` | FleetOps realm roles/clients | Centralized identity and role model |
-| `05-rabbitmq-topology.png` | Integration queues/exchanges/DLQ | Async messaging architecture |
-| `06-github-ci.png` | Successful CI job with container checks | Automated verification and delivery discipline |
+| `04-keycloak-security.png` | FleetOps realm roles/clients | Centralized identity and role model |
+| `05-rabbitmq-integration.png` | Integration queues/exchanges/DLQ | Async messaging architecture |
+| `06-github-actions-ci.png` | Successful CI job with container checks | Automated verification and delivery discipline |
 
 Do not add screenshots merely to increase image count. Each image should prove a different engineering capability.
 
